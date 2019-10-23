@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1020179120723",
+    "firebase_url": "https://chatroom-d515d.firebaseio.com",
+    "project_id": "chatroom-d515d",
+    "storage_bucket": "chatroom-d515d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1020179120723:android:8a559d0f3b2851db29bca6",
+        "android_client_info": {
+          "package_name": "com.javi.chatapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1020179120723-m7q7aigagmv0hhfhuoq7oii9utogrjel.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZZxLYlJD-wRtRGGj7Sck5IMYtB3Hrl70"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1020179120723-m7q7aigagmv0hhfhuoq7oii9utogrjel.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
