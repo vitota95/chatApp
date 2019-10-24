@@ -1,0 +1,13 @@
+{
+  "chatRooms": [
+    {
+      "id" : "My first chat room"
+    },
+    {
+      "id" : "My second chat room"
+    },
+    {
+      "id" : "My third chat room"
+    }
+  ]
+}
