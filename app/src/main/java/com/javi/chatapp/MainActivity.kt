@@ -9,10 +9,15 @@ import android.widget.ListView
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.*
+import androidx.core.app.ComponentActivity.ExtraData
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import java.lang.System.out
 
 
 class MainActivity : AppCompatActivity() {
-
+    val chatRoomItems = ArrayList<String>()
     private val RC_SIGN_IN = 1
     private lateinit var chatRoomsListView : ListView
 
@@ -55,16 +60,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun addChatRooms(){
-        chatRoomsListView = findViewById(R.id.chatRoomsListView)
-        val chatRooms = ChatRoom.getRoomsFromFile("chatRooms.json", this)
-        val chatRoomItems = arrayOfNulls<String>(chatRooms.size)
+        val dbProvider = DbProvider()
+        var listener: ()-> Unit = {
+            val chatRooms = dbProvider.getChatRooms()
+            for(i in 0 until chatRooms.size) {
+                val chatRoom = chatRooms[i]
+                chatRoomItems.add(chatRoom.name)
+            }
 
-        for(i in 0 until chatRooms.size) {
-            val chatRoom = chatRooms[i]
-            chatRoomItems[i] = chatRoom.id
+            val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, chatRoomItems)
+            chatRoomsListView = findViewById(R.id.chatRoomsListView)
+            chatRoomsListView.adapter = adapter
+            adapter.notifyDataSetChanged()
         }
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, chatRoomItems)
-        chatRoomsListView.adapter = adapter
+        dbProvider.loadChatRooms(listener)
     }
 }
