@@ -9,12 +9,14 @@ import android.widget.ListView
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
-
+import com.google.firebase.auth.FirebaseUser
 
 class MainActivity : AppCompatActivity() {
-    val chatRoomItems = ArrayList<String>()
-    private val RC_SIGN_IN = 1
+    private lateinit var user : FirebaseUser
     private lateinit var chatRoomsListView : ListView
+    private lateinit var chatRooms : ArrayList<ChatRoom>
+    private val RC_SIGN_IN = 1
+    private val chatRoomItems = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +44,7 @@ class MainActivity : AppCompatActivity() {
 
             if (resultCode == Activity.RESULT_OK) {
                 // Successfully signed in
-                val user = FirebaseAuth.getInstance().currentUser
+                this.user = FirebaseAuth.getInstance().currentUser!!
                 setContentView(R.layout.activity_main)
                 addChatRooms()
             } else {
@@ -56,18 +58,38 @@ class MainActivity : AppCompatActivity() {
 
     private fun addChatRooms(){
         val dbProvider = DbProvider()
-        var listener: ()-> Unit = {
-            val chatRooms = dbProvider.getChatRooms()
+        val listener: ()-> Unit = {
+            this.chatRooms = dbProvider.getChatRooms()
             for(i in 0 until chatRooms.size) {
                 val chatRoom = chatRooms[i]
                 chatRoomItems.add(chatRoom.name)
             }
 
+            this.setChatRoomsListView()
+        }
+        dbProvider.loadChatRooms(listener)
+    }
+
+    private fun setChatRoomsListView(){
+        chatRoomsListView = findViewById(R.id.chatRoomsListView)
+
+        if (chatRoomsListView.adapter == null){
             val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, chatRoomItems)
             chatRoomsListView = findViewById(R.id.chatRoomsListView)
             chatRoomsListView.adapter = adapter
-            adapter.notifyDataSetChanged()
         }
-        dbProvider.loadChatRooms(listener)
+        val adapter =  chatRoomsListView.adapter as ArrayAdapter<*>
+        adapter.notifyDataSetChanged()
+
+        chatRoomsListView.setOnItemClickListener{_, _, position, _ ->
+            this.showRoom(position)
+        }
+    }
+
+    private fun showRoom(position: Int ){
+        val intent = Intent(this, ChatRoomActivity::class.java)
+        intent.putExtra("userId", this.user.uid)
+        intent.putExtra("chatRoomId", chatRooms[position].id)
+        startActivity(intent)
     }
 }
