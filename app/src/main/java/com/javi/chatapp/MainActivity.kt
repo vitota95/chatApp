@@ -9,11 +9,6 @@ import android.widget.ListView
 import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.*
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-import java.lang.System.out
 
 
 class MainActivity : AppCompatActivity() {
@@ -59,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun addChatRooms(){
+    private fun addChatRooms(){
         val dbProvider = DbProvider()
         var listener: ()-> Unit = {
             val chatRooms = dbProvider.getChatRooms()
@@ -73,7 +68,6 @@ class MainActivity : AppCompatActivity() {
             chatRoomsListView.adapter = adapter
             adapter.notifyDataSetChanged()
         }
-
         dbProvider.loadChatRooms(listener)
     }
 }

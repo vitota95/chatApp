@@ -1,7 +1,5 @@
 package com.javi.chatapp
 
-import android.app.Activity
-import kotlinx.coroutines.*
 import android.content.ContentValues.TAG
 import android.util.Log
 import com.google.firebase.firestore.FirebaseFirestore
