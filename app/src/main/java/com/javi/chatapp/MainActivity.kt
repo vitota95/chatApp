@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
         val intent = Intent(this, ChatRoomActivity::class.java)
         intent.putExtra("userId", this.user.uid)
         intent.putExtra("chatRoomId", chatRooms[position].id)
+        intent.putExtra("userName", this.user.displayName)
         startActivity(intent)
     }
 }
