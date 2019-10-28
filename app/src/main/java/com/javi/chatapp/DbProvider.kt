@@ -2,10 +2,14 @@ package com.javi.chatapp
 
 import android.content.ContentValues.TAG
 import android.util.Log
+import androidx.core.net.toUri
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.storage.FirebaseStorage
 import kotlin.collections.ArrayList
+import android.graphics.Bitmap
+import java.io.ByteArrayOutputStream
 
 class DbProvider {
     private val MESSAGES_PATH = "messages"
@@ -14,6 +18,7 @@ class DbProvider {
     private var rooms = ArrayList<ChatRoom>()
     private var messages = ArrayList<Message>()
     private var dbInstance = FirebaseFirestore.getInstance()
+    private val storageRef  = FirebaseStorage.getInstance().reference
 
     private lateinit var messagesRegistration : ListenerRegistration
 
@@ -49,6 +54,24 @@ class DbProvider {
 
     fun sendMessage(message : Message){
         val messagesCollection = this.dbInstance.collection(MESSAGES_PATH)
+        if (message.image != null){
+            val uri = message.image!!.toUri()
+            val storagePath = "images/${uri.lastPathSegment}"
+
+            // set uri to the storage path in cloud store
+            if (!message.isSentMessage()){
+                message.image = storagePath
+            }
+
+            storageRef.child("images/${uri.lastPathSegment}")
+
+            val uploadTask = storageRef.putFile(uri!!)
+
+            // Register observers to listen for when the download is done or if it fails
+            uploadTask.addOnFailureListener {
+                Log.d(TAG, "Could not upload the image. ")
+            }
+        }
 
         messagesCollection
             .add(message)

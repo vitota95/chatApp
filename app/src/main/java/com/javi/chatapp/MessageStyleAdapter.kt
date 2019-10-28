@@ -1,12 +1,20 @@
 package com.javi.chatapp
 
 import android.app.Activity
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.ImageView
 import android.widget.TextView
+import android.graphics.BitmapFactory
+import android.provider.MediaStore
+import android.util.Log
+import androidx.core.net.toUri
+import java.io.FileNotFoundException
+
 
 class MessageStyleAdapter(val context: Context) : BaseAdapter() {
     private val messages = ArrayList<Message>()
@@ -49,8 +57,20 @@ class MessageStyleAdapter(val context: Context) : BaseAdapter() {
             holder.name!!.text = message.userName
         }
 
-        holder.messageBody = _convertView.findViewById(R.id.message_body) as TextView
-        holder.messageBody!!.text = message.text
+        if (message.image != null){
+            holder.image = _convertView.findViewById(R.id.chat_image) as ImageView
+            try {
+                val bitmap = MediaStore.Images.Media.getBitmap(this.context.contentResolver, message.image?.toUri())
+                holder.image!!.setImageBitmap(bitmap)
+            }catch (e : FileNotFoundException){
+                Log.d(TAG, "Could not retrieve the image $e")
+            }
+        }
+        else {
+            holder.messageBody = _convertView.findViewById(R.id.message_body) as TextView
+            holder.messageBody!!.text = message.text
+        }
+
         _convertView.tag = holder
 
         return _convertView
@@ -59,5 +79,6 @@ class MessageStyleAdapter(val context: Context) : BaseAdapter() {
     class MessageViewHolder() {
         var name: TextView? = null
         var messageBody: TextView? = null
+        var image: ImageView? = null
     }
 }

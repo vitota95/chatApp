@@ -37,4 +37,11 @@
         android:textSize="18sp"
         />
 
+    <ImageView
+        android:id="@+id/chat_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/app_name"
+        android:padding="10dp" />
+
 </RelativeLayout>

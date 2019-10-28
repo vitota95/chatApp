@@ -7,4 +7,5 @@
     <string name="Yes">Yes</string>
     <string name="No">No</string>
     <string name="subscribe_notifications">Do you want to register for notifications on this room?</string>
+    <string name="image_picker_description">press to pick an image from gallery</string>
 </resources>
