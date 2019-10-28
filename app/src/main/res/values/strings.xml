@@ -4,4 +4,7 @@
     <string name="facebook_login_protocol_scheme" translatable="false">fb400355084215081</string>
     <string name="message_hint">Write a message</string>
     <string name="arrow_content_description">press to send the message</string>
+    <string name="Yes">Yes</string>
+    <string name="No">No</string>
+    <string name="subscribe_notifications">Do you want to register for notifications on this room?</string>
 </resources>

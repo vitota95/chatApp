@@ -2,10 +2,10 @@ package com.javi.chatapp
 
 import android.content.ContentValues.TAG
 import android.util.Log
-import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
+import kotlin.collections.ArrayList
 
 class DbProvider {
     private val MESSAGES_PATH = "messages"
@@ -47,26 +47,6 @@ class DbProvider {
         }
     }
 
-    fun getMessagesByRoom(listener: () -> Unit, roomId: String, numOfItems : Long){
-        val messagesCollection = this.dbInstance.collection(MESSAGES_PATH)
-
-        messagesCollection
-            .whereEqualTo("chatRoomId", roomId)
-            .orderBy("timestamp", Query.Direction.DESCENDING)
-            .limit(numOfItems)
-            .get()
-            .addOnSuccessListener {
-                for (document in it.documents) {
-                    val message = document.toObject(Message::class.java)
-                    this.messages.add(message!!)
-                }
-            }.addOnFailureListener { exception ->
-                Log.d(TAG, "Error getting documents: ", exception)
-            }.addOnCompleteListener {
-                listener()
-            }
-    }
-
     fun sendMessage(message : Message){
         val messagesCollection = this.dbInstance.collection(MESSAGES_PATH)
 
@@ -77,26 +57,38 @@ class DbProvider {
             }
     }
 
-    fun startReceivingMessages(listener : () -> Unit, roomId: String){
+    fun startReceivingMessages(listener : () -> Unit, roomId: String, numberOfItems : Long){
         val messagesCollection = dbInstance.collection(MESSAGES_PATH)
 
         this.messagesRegistration = messagesCollection
             .whereEqualTo("chatRoomId", roomId)
-            .orderBy("date", Query.Direction.ASCENDING)
+            .orderBy("date")
+            .limit(numberOfItems)
             .addSnapshotListener { snapshot, e ->
-            val documentChanges = snapshot?.documentChanges
+                val documentChanges = snapshot?.documentChanges
+                documentChanges?.forEach {
+                    val message = it.document.toObject(Message::class.java)
 
-            documentChanges?.forEach {
-                val message = it.document.toObject(Message::class.java)
+                    this.messages.add(message)
+                }
 
-                this.messages.add(message)
-            }
-
-            listener()
+                listener()
         }
     }
 
     fun stopReceivingMessages() {
         this.messagesRegistration.remove()
+    }
+
+    fun registerUserToChatRoom(uid : String, chatRoomId : String){
+        val uidRef = this.dbInstance.collection("users").document(uid)
+        val data = hashMapOf(
+            "registeredChatRooms" to arrayListOf(chatRoomId)
+        )
+
+        uidRef.set(data, SetOptions.merge())
+            .addOnFailureListener{
+                Log.d(TAG, "failed to write the subscription to the database", it)
+            }
     }
 }

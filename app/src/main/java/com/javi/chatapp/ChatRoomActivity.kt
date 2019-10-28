@@ -1,16 +1,17 @@
 package com.javi.chatapp
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
-import java.sql.Timestamp
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
 import kotlin.collections.ArrayList
+import androidx.appcompat.app.AlertDialog
+
+
 
 class ChatRoomActivity : AppCompatActivity(){
     private val NUMBER_OF_MESSAGES = 50L
@@ -33,13 +34,12 @@ class ChatRoomActivity : AppCompatActivity(){
         this.chatRoomId = intent.getStringExtra("chatRoomId")!!
         this.userName = intent.getStringExtra("userName")!!
         this.setMessagesListView()
-        this.loadMessages()
-        //this.dbProvider.startReceivingMessages({ updateRoomMessages() }, this.chatRoomId)
+        this.showRegistrationToChatRoomDialog()
     }
 
     override fun onResume() {
         super.onResume()
-        this.dbProvider.startReceivingMessages({ updateRoomMessages() }, this.chatRoomId)
+        this.dbProvider.startReceivingMessages({ updateRoomMessages() }, this.chatRoomId, NUMBER_OF_MESSAGES)
     }
 
     override fun onPause() {
@@ -56,10 +56,6 @@ class ChatRoomActivity : AppCompatActivity(){
         this.dbProvider.sendMessage(message)
 
         editText.text.clear()
-    }
-
-    private fun loadMessages(){
-        this.dbProvider.getMessagesByRoom({updateRoomMessages()}, this.chatRoomId, NUMBER_OF_MESSAGES)
     }
 
     private fun updateRoomMessages(){
@@ -79,5 +75,25 @@ class ChatRoomActivity : AppCompatActivity(){
         }
 
         messagesListView.adapter = this.messageStyleAdapter
+    }
+
+    private fun showRegistrationToChatRoomDialog(){
+        val builder = AlertDialog.Builder(this)
+        builder.setMessage(getString(R.string.subscribe_notifications))
+            .setPositiveButton(R.string.Yes, dialogClickListener())
+            .setNegativeButton(R.string.No, dialogClickListener()).show()
+    }
+
+    private fun dialogClickListener() : DialogInterface.OnClickListener{
+        return DialogInterface.OnClickListener { dialog, which ->
+            when (which) {
+                DialogInterface.BUTTON_POSITIVE -> {
+                    this.dbProvider.registerUserToChatRoom(this.uid, this.chatRoomId)
+                }
+
+                DialogInterface.BUTTON_NEGATIVE -> {
+                }
+            }
+        }
     }
 }
