@@ -1,6 +1,7 @@
 package com.javi.chatapp
 
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.util.Log
 import androidx.core.net.toUri
 import com.google.firebase.firestore.FirebaseFirestore
@@ -9,9 +10,13 @@ import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
 import kotlin.collections.ArrayList
 import android.graphics.Bitmap
+import kotlinx.coroutines.runBlocking
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.IOException
+import java.util.concurrent.locks.ReentrantLock
 
-class DbProvider {
+class DbProvider(val context: Context) {
     private val MESSAGES_PATH = "messages"
     private val CHAT_ROOMS_PATH = "chatRooms"
 
@@ -19,6 +24,7 @@ class DbProvider {
     private var messages = ArrayList<Message>()
     private var dbInstance = FirebaseFirestore.getInstance()
     private val storageRef  = FirebaseStorage.getInstance().reference
+    private val addMessagesLock = ReentrantLock()
 
     private lateinit var messagesRegistration : ListenerRegistration
 
@@ -27,11 +33,13 @@ class DbProvider {
     }
 
     fun getMessages() : ArrayList<Message>{
-        val messages = ArrayList<Message>()
-        messages.addAll(this.messages)
+        // added lock to avoid image messages call of listener concurrency
+        this.addMessagesLock.lock()
+        val msgs = ArrayList<Message>(this.messages)
         this.messages.clear()
+        this.addMessagesLock.unlock()
 
-        return messages
+        return msgs
     }
 
     fun loadChatRooms(listener : () -> Unit){
@@ -46,7 +54,7 @@ class DbProvider {
                 }
             }
         }.addOnFailureListener { exception ->
-            Log.d(TAG, "Error getting documents: ", exception)
+            Log.e(TAG, "Error getting documents: ", exception)
         }.addOnCompleteListener {
             listener()
         }
@@ -59,28 +67,26 @@ class DbProvider {
             val storagePath = "images/${uri.lastPathSegment}"
 
             // set uri to the storage path in cloud store
-            if (!message.isSentMessage()){
-                message.image = storagePath
-            }
+            message.image = storagePath
 
-            storageRef.child("images/${uri.lastPathSegment}")
+            val ref = storageRef.child(storagePath)
 
-            val uploadTask = storageRef.putFile(uri!!)
+            val uploadTask = ref.putFile(uri!! )
 
             // Register observers to listen for when the download is done or if it fails
             uploadTask.addOnFailureListener {
-                Log.d(TAG, "Could not upload the image. ")
+                Log.e(TAG, "Could not upload the image. ")
             }
         }
 
         messagesCollection
             .add(message)
             .addOnFailureListener { e ->
-                Log.w(TAG, "Error adding document", e)
+                Log.e(TAG, "Error adding document", e)
             }
     }
 
-    fun startReceivingMessages(listener : () -> Unit, roomId: String, numberOfItems : Long){
+    fun startReceivingMessages(messageListener : () -> Unit, roomId: String, numberOfItems : Long){
         val messagesCollection = dbInstance.collection(MESSAGES_PATH)
 
         this.messagesRegistration = messagesCollection
@@ -91,12 +97,27 @@ class DbProvider {
                 val documentChanges = snapshot?.documentChanges
                 documentChanges?.forEach {
                     val message = it.document.toObject(Message::class.java)
+                    if (message.image != null){
+                        val ref  = storageRef.child(message.image!!)
+                        try {
+                            val localFile = File.createTempFile("image", null, this.context.cacheDir)
 
+                            ref.getFile(localFile).addOnSuccessListener {
+                                message.image = localFile.absolutePath
+                                this.messages.add(message)
+                                messageListener()
+                            }.addOnFailureListener {
+                                Log.e(TAG, "Couldn't retrieve the image: ", it)
+                            }
+                        }catch (e : IOException){
+
+                        }
+                    }
                     this.messages.add(message)
                 }
 
-                listener()
-        }
+                messageListener()
+            }
     }
 
     fun stopReceivingMessages() {
@@ -111,7 +132,7 @@ class DbProvider {
 
         uidRef.set(data, SetOptions.merge())
             .addOnFailureListener{
-                Log.d(TAG, "failed to write the subscription to the database", it)
+                Log.e(TAG, "failed to write the subscription to the database", it)
             }
     }
 }

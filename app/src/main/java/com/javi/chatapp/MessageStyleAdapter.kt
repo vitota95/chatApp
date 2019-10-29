@@ -10,9 +10,12 @@ import android.widget.BaseAdapter
 import android.widget.ImageView
 import android.widget.TextView
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import android.widget.ListView
 import androidx.core.net.toUri
+import java.io.File
 import java.io.FileNotFoundException
 
 
@@ -60,8 +63,12 @@ class MessageStyleAdapter(val context: Context) : BaseAdapter() {
         if (message.image != null){
             holder.image = _convertView.findViewById(R.id.chat_image) as ImageView
             try {
-                val bitmap = MediaStore.Images.Media.getBitmap(this.context.contentResolver, message.image?.toUri())
+                val bitmap = MediaStore.Images.Media.getBitmap(this.context.contentResolver, Uri.fromFile(
+                    File(message.image!!)
+                ))
                 holder.image!!.setImageBitmap(bitmap)
+                val tv = _convertView.findViewById(R.id.message_body) as TextView
+                tv.visibility = View.GONE
             }catch (e : FileNotFoundException){
                 Log.d(TAG, "Could not retrieve the image $e")
             }

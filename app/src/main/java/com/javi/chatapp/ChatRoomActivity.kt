@@ -11,24 +11,15 @@ import java.util.*
 import kotlin.collections.ArrayList
 import androidx.appcompat.app.AlertDialog
 import android.content.Intent
-import android.graphics.BitmapFactory
 import android.provider.MediaStore
 import android.app.Activity
-import android.graphics.Bitmap
-import android.graphics.ImageDecoder
-import android.R.attr.bitmap
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.net.Uri
-import java.io.ByteArrayOutputStream
-
 
 class ChatRoomActivity : AppCompatActivity(){
     private val NUMBER_OF_MESSAGES = 50L
     private val GALLERY_REQUEST_CODE = 100
 
-    private val dbProvider = DbProvider()
+    private val dbProvider = DbProvider(this)
     private val roomMessages = ArrayList<String>()
     private val messageStyleAdapter = MessageStyleAdapter(this)
 
@@ -79,6 +70,7 @@ class ChatRoomActivity : AppCompatActivity(){
         val messages = dbProvider.getMessages()
 
         this.messageStyleAdapter.addAllMessages(messages)
+        this.findViewById<ListView>(R.id.messages_view).smoothScrollToPosition(messageStyleAdapter.count)
     }
 
     private fun setMessagesListView(){
@@ -132,18 +124,9 @@ class ChatRoomActivity : AppCompatActivity(){
                 GALLERY_REQUEST_CODE -> {
                     //data.getData return the content URI for the selected Image
                     val imageUri = data!!.data
-                    val filePathColumn = arrayOf(MediaStore.Images.Media.DATA)
-                    // Get the cursor
-                    val cursor =
-                        contentResolver.query(imageUri!!, filePathColumn, null, null, null)
-                    // Move to first row
-                    cursor!!.moveToFirst()
-                    //Get the column index of MediaStore.Images.Media.DATA
-                    val columnIndex = cursor.getColumnIndex(filePathColumn[0])
 
-                    cursor.close()
-                    // Set the Image in ImageView after decoding the String
-                    this.sendImageMessage(imageUri)
+                    // Set the image to the ImageView
+                    this.sendImageMessage(imageUri!!)
                 }
             }
     }

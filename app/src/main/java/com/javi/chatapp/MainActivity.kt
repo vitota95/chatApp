@@ -19,6 +19,8 @@ class MainActivity : AppCompatActivity() {
     private val chatRoomItems = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Reset theme to the principal one
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
 
         // Choose authentication providers
@@ -57,7 +59,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addChatRooms(){
-        val dbProvider = DbProvider()
+        val dbProvider = DbProvider(this)
         val listener: ()-> Unit = {
             this.chatRooms = dbProvider.getChatRooms()
             for(i in 0 until chatRooms.size) {
