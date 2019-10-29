@@ -10,6 +10,8 @@ import com.firebase.ui.auth.AuthUI
 import com.firebase.ui.auth.IdpResponse
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.javi.chatapp.Database.DbProvider
+import com.javi.chatapp.Model.ChatRoom
 
 class MainActivity : AppCompatActivity() {
     private lateinit var user : FirebaseUser
@@ -93,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("userId", this.user.uid)
         intent.putExtra("chatRoomId", chatRooms[position].id)
         intent.putExtra("userName", this.user.displayName)
+        intent.putExtra("chtRoomName", chatRooms[position].name)
         startActivity(intent)
     }
 }
